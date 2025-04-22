@@ -26,8 +26,8 @@ Author: x3n0m0rph59@gmail.com
   <!-- interface-license-type gplv2 -->
   <!-- interface-name Eruption Profile Switcher -->
   <!-- interface-description Eruption Profile Switcher Gnome Shell Extension -->
-  <!-- interface-copyright 2019-2023 The Eruption Development Team -->
-  <!-- interface-authors x3n0m0rph59@gmail.com -->
+  <!-- interface-copyright 2019-2025 The Eruption Development Team -->
+  <!-- interface-authors x3n0m0rph59@gmail.com, anty -->
   <object class="GtkNotebook" id="main_prefs">
     <property name="visible">True</property>
     <property name="can-focus">True</property>
@@ -178,11 +178,12 @@ Author: x3n0m0rph59@gmail.com
         <property name="label" translatable="yes">Eruption Profile Switcher
 GNOME Shell Extension
 
-Copyright (c) 2019-2023
+Copyright (c) 2019-2025
 The Eruption Development Team
 
 Authors:
-x3n0m0rph59@gmail.com</property>
+x3n0m0rph59@gmail.com
+anty (https://anty.at)</property>
       </object>
     </child>
     <child type="tab">

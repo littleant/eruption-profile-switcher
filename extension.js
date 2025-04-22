@@ -14,35 +14,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (c) 2019-2023, The Eruption Development Team
+ * Copyright (c) 2019-2025, The Eruption Development Team
  */
 
 "use strict";
 
-const Gettext = imports.gettext;
+import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
+import Clutter from 'gi://Clutter';
+import St from 'gi://St';
 
-const { Gio, GObject, Clutter, St } = imports.gi;
+import {Extension, gettext as _, ngettext as _ngettext} from 'resource:///org/gnome/shell/extensions/extension.js';
+import * as Util from 'resource:///org/gnome/shell/misc/util.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Util = imports.misc.util;
-const Main = imports.ui.main;
 const Mainloop = imports.mainloop;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
-const Slider = imports.ui.slider;
-// const Signals = imports.signals;
-// const ByteArray = imports.byteArray;
 
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as Slider from 'resource:///org/gnome/shell/ui/slider.js';
 
-const DbusInterface = Me.imports.dbus_interface;
-const Devices = Me.imports.devices;
-
-// i18n/l10n
-const Domain = Gettext.domain(Me.metadata.uuid);
-
-const _ = Domain.gettext;
-const _ngettext = Domain.ngettext;
+import * as DbusInterface from './dbus_interface.js';
+import * as Devices from './devices.js';
 
 // Global constants
 const NOTIFICATION_TIMEOUT_MILLIS = 1200;
@@ -107,7 +100,7 @@ function showNotification(type, msg) {
       Mainloop.source_remove(pending_timeout);
       pending_timeout = null;
 
-      Main.uiGroup.remove_actor(notificationText);
+      Main.uiGroup.remove_child(notificationText);
       notificationText = null;
     }
 
@@ -123,7 +116,7 @@ function showNotification(type, msg) {
 
       text.opacity = 255;
 
-      Main.uiGroup.add_actor(text);
+      Main.uiGroup.add_child(text);
       text.set_position(
         Math.floor(monitor.width / 2 - text.width / 2),
         Math.floor(monitor.height / 2 - text.height / 2),
@@ -137,8 +130,7 @@ function showNotification(type, msg) {
               duration: NOTIFICATION_ANIMATION_MILLIS,
               mode: Clutter.AnimationMode.EASE_OUT_QUAD,
               onComplete: () => {
-                Main.uiGroup.remove_actor(notificationText);
-
+                Main.uiGroup.remove_child(notificationText);
                 Mainloop.source_remove(pending_timeout);
                 pending_timeout = null;
               },
@@ -162,7 +154,7 @@ function showNotification(type, msg) {
 //           duration: NOTIFICATION_ANIMATION_MILLIS,
 //           mode: Clutter.AnimationMode.EASE_OUT_QUAD,
 //           onComplete: () => {
-//             Main.uiGroup.remove_actor(notificationText);
+//             Main.uiGroup.remove_child(notificationText);
 //             notificationText = null;
 //           },
 //         });
@@ -175,7 +167,8 @@ function showNotification(type, msg) {
 function areNotificationsEnabled(type) {
   let result = false;
 
-  const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+  const extension = Extension.lookupByURL(import.meta.url);
+  const settings = extension.getSettings();
 
   try {
     switch (type) {
@@ -422,7 +415,7 @@ const CustomPopupMenuItem = GObject.registerClass(
       this.label = new St.Label({
         text: text,
       });
-      this.add_actor(this.label);
+      this.add_child(this.label);
 
       this._callback = cb;
 
@@ -458,8 +451,8 @@ const SlotMenuItem = GObject.registerClass(
       this._slot = slot;
       this.setToggleState(false);
 
-      this.add_actor(this.index);
-      this.add_actor(this.label);
+      this.add_child(this.index);
+      this.add_child(this.label);
 
       this.connect("activate", this._activate.bind(this));
     }
@@ -501,7 +494,7 @@ const ProfileMenuItem = GObject.registerClass(
       this._profile = profile;
       this.setToggleState(false);
 
-      this.add_actor(this.label);
+      this.add_child(this.label);
 
       this.connect("activate", this._activate.bind(this));
     }
@@ -562,10 +555,10 @@ const EruptionMenuButton = GObject.registerClass(
 
       deviceStatusIndicatorBox = indicator_hbox;
 
-      hbox.add_actor(this.icon);
-      hbox.add_actor(PopupMenu.arrowIcon(St.Side.BOTTOM));
-      hbox.add_actor(indicator_hbox);
-      this.add_actor(hbox);
+      hbox.add_child(this.icon);
+      hbox.add_child(PopupMenu.arrowIcon(St.Side.BOTTOM));
+      hbox.add_child(indicator_hbox);
+      this.add_child(hbox);
 
       this._statusMenuItems = [];
       this.populateMenu();
@@ -812,7 +805,8 @@ const EruptionMenuButton = GObject.registerClass(
           if (!config.status_only) {
             this.menu.removeAll();
 
-            const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+            const extension = Extension.lookupByURL(import.meta.url);
+            const settings = extension.getSettings();
 
             if (!settings.get_boolean("compact-mode")) {
               // add "slots" header
@@ -984,7 +978,9 @@ const EruptionMenuButton = GObject.registerClass(
             const prefs_item = new CustomPopupMenuItem(
               _("Extension preferences…"),
               (_item) => {
-                ExtensionUtils.openPrefs();
+                // ExtensionUtils.openPrefs();
+                const extension = Extension.lookupByURL(import.meta.url);
+                extension.openPreferences();
               },
               {
                 activate: true,
@@ -1040,8 +1036,8 @@ const EruptionMenuButton = GObject.registerClass(
               this._brightnessSliderChanged.bind(this),
             );
 
-            item.add(icon);
-            item.add_actor(brightnessSlider);
+            item.add_child(icon);
+            item.add_child(brightnessSlider);
 
             item.connect("button-press-event", (_, event) => {
               return brightnessSlider.startDragging(event);
@@ -1065,7 +1061,8 @@ const EruptionMenuButton = GObject.registerClass(
     }
 
     populateStatusMenuItems() {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const extension = Extension.lookupByURL(import.meta.url);
+      const settings = extension.getSettings();
 
       this._statusMenuItems.forEach((item) => item.destroy());
       this._statusMenuItems = [];
@@ -1109,8 +1106,8 @@ const EruptionMenuButton = GObject.registerClass(
                 style_class: "menu-item-status-label",
               });
 
-              item.add_actor(icon);
-              item.add_actor(level_label);
+              item.add_child(icon);
+              item.add_child(level_label);
 
               indicators += 1;
             }
@@ -1139,8 +1136,8 @@ const EruptionMenuButton = GObject.registerClass(
                 style_class: "menu-item-label",
               });
 
-              item.add_actor(icon);
-              item.add_actor(level_label);
+              item.add_child(icon);
+              item.add_child(level_label);
 
               indicators += 1;
             }
@@ -1172,7 +1169,7 @@ const EruptionMenuButton = GObject.registerClass(
               }
             }
 
-            item.add_actor(label);
+            item.add_child(label);
 
             this.menu.addMenuItem(item);
             this._statusMenuItems.push(item);
@@ -1468,7 +1465,9 @@ const IndicatorMenuButton = GObject.registerClass(
         _(`${getDeviceNameFromUSBIDs(device.usb_vid, device.usb_pid)}`),
       );
 
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      // const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const extension = Extension.lookupByURL(import.meta.url);
+      const settings = extension.getSettings();
 
       let icon_name;
       let icon, label;
@@ -1488,7 +1487,7 @@ const IndicatorMenuButton = GObject.registerClass(
 
           this.icon = icon;
 
-          deviceStatusIndicatorBox.add_actor(icon);
+          deviceStatusIndicatorBox.add_child(icon);
 
           if (settings.get_boolean("show-device-indicators-percentages")) {
             const value = `${battery_level}`;
@@ -1502,7 +1501,7 @@ const IndicatorMenuButton = GObject.registerClass(
 
             this.label = label;
 
-            deviceStatusIndicatorBox.add_actor(label);
+            deviceStatusIndicatorBox.add_child(label);
           }
           break;
         }
@@ -1520,7 +1519,7 @@ const IndicatorMenuButton = GObject.registerClass(
 
           this.icon = icon;
 
-          deviceStatusIndicatorBox.add_actor(icon);
+          deviceStatusIndicatorBox.add_child(icon);
 
           if (settings.get_boolean("show-device-indicators-percentages")) {
             const value = `${signal_strength}`;
@@ -1534,7 +1533,7 @@ const IndicatorMenuButton = GObject.registerClass(
 
             this.label = label;
 
-            deviceStatusIndicatorBox.add_actor(label);
+            deviceStatusIndicatorBox.add_child(label);
           }
           break;
         }
@@ -1551,7 +1550,8 @@ const IndicatorMenuButton = GObject.registerClass(
     update() {
       // log(`[eruption] updating indicator for: ${this.getDeviceName()}`);
 
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const extension = Extension.lookupByURL(import.meta.url);
+      const settings = extension.getSettings();
 
       // update device status
       const device = deviceStatus.find((e, _index, _object) => {
@@ -1639,7 +1639,8 @@ const IndicatorMenuButton = GObject.registerClass(
 );
 
 function showDeviceStatusIndicators() {
-  const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+  const extension = Extension.lookupByURL(import.meta.url);
+  const settings = extension.getSettings();
 
   if (settings.get_boolean("show-device-indicators")) {
     if (deviceStatus) {
@@ -1652,7 +1653,7 @@ function showDeviceStatusIndicators() {
                 SIGNAL_STRENGTH_INDICATOR,
                 device,
               );
-              deviceStatusIndicatorBox.add_actor(indicatorMenuButton);
+              deviceStatusIndicatorBox.add_child(indicatorMenuButton);
               statusIndicatorIcons.push(indicatorMenuButton);
             }
 
@@ -1662,7 +1663,7 @@ function showDeviceStatusIndicators() {
                 BATTERY_INDICATOR,
                 device,
               );
-              deviceStatusIndicatorBox.add_actor(indicatorMenuButton);
+              deviceStatusIndicatorBox.add_child(indicatorMenuButton);
               statusIndicatorIcons.push(indicatorMenuButton);
             }
           }
@@ -1715,13 +1716,11 @@ function removeDeviceStatusIndicators() {
   statusIndicatorIcons = [];
 }
 
-class ProfileSwitcherExtension {
-  constructor() { }
-
+export default class ProfileSwitcherExtension extends Extension {
   enable() {
-    log(`[eruption] enabling ${Me.metadata.name}`);
+    log(`[eruption] enabling ${this.metadata.name}`);
 
-    const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+    const settings = this.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
     settings.connect("changed", this._update.bind(this));
 
     eruptionMenuButton = new EruptionMenuButton();
@@ -1732,7 +1731,7 @@ class ProfileSwitcherExtension {
   }
 
   disable() {
-    log(`[eruption] disabling ${Me.metadata.name}`);
+    log(`[eruption] disabling ${this.metadata.name}`);
 
     Mainloop.source_remove(pending_timeout);
     pending_timeout = null;
@@ -1759,14 +1758,14 @@ class ProfileSwitcherExtension {
   }
 
   reload() {
-    log(`[eruption] reloading ${Me.metadata.name}`);
+    log(`[eruption] reloading ${this.metadata.name}`);
 
     this.disable();
     this.enable();
   }
 
   _update() {
-    log(`[eruption] updating settings ${Me.metadata.name}`);
+    log(`[eruption] updating settings ${this.metadata.name}`);
 
     removeDeviceStatusIndicators();
     showDeviceStatusIndicators();
@@ -1777,8 +1776,6 @@ class ProfileSwitcherExtension {
 
 // deno-lint-ignore no-unused-vars
 function init() {
-  ExtensionUtils.initTranslations(Me.metadata.uuid);
-
   instance = new ProfileSwitcherExtension();
   return instance;
 }

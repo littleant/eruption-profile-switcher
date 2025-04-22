@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (c) 2019-2023, The Eruption Development Team
+ * Copyright (c) 2019-2025, The Eruption Development Team
  */
 
 "use strict";
@@ -26,7 +26,7 @@
 //  org.freedesktop.DBus.Introspectable.Introspect`
 
 // D-Bus interface specification: Slots
-var eruptionSlotIface =
+export const eruptionSlotIface =
   `<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node name="/org/eruption/slot">
   <interface name="org.eruption.Slot">
@@ -74,7 +74,7 @@ var eruptionSlotIface =
 </node>`.trim();
 
 // D-Bus interface specification: Profiles
-var eruptionProfileIface =
+export const eruptionProfileIface =
   `<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node name="/org/eruption/profile">
   <interface name="org.eruption.Profile">
@@ -129,7 +129,7 @@ var eruptionProfileIface =
 </node>`.trim();
 
 // D-Bus interface specification: Runtime configuration
-var eruptionConfigIface =
+export const eruptionConfigIface =
   `<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node name="/org/eruption/config">
   <interface name="org.eruption.Config">
@@ -191,7 +191,7 @@ var eruptionConfigIface =
 </node>`.trim();
 
 // D-Bus interface specification: Status
-var eruptionStatusIface =
+export const eruptionStatusIface =
   `<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node name="/org/eruption/status">
   <interface name="org.eruption.Status">
@@ -232,7 +232,7 @@ var eruptionStatusIface =
 </node>`.trim();
 
 // D-Bus interface specification: Device
-var eruptionDeviceIface =
+export const eruptionDeviceIface =
   `<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node name="/org/eruption/devices">
   <interface name="org.eruption.Device">
@@ -295,7 +295,7 @@ var eruptionDeviceIface =
 //  org.freedesktop.DBus.Introspectable.Introspect`
 
 // D-Bus interface specification: /org/eruption/fx_proxy/effects
-var eruptionFxProxyEffectsIface =
+export const eruptionFxProxyEffectsIface =
   `<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node name="/org/eruption/fx_proxy/effects">
   <interface name="org.eruption.fx_proxy.Effects">

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (c) 2019-2023, The Eruption Development Team
+ * Copyright (c) 2019-2025, The Eruption Development Team
  */
 
 "use strict";
@@ -22,7 +22,7 @@
 // const Gettext = imports.gettext;
 
 // Supported devices: Eruption 0.3.3
-const SUPPORTED_DEVICES = [
+export const SUPPORTED_DEVICES = [
   {
     make: "ROCCAT",
     model: "Vulcan 100/12x",

@@ -14,44 +14,52 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (c) 2019-2023, The Eruption Development Team
+ * Copyright (c) 2019-2025, The Eruption Development Team
  */
 
 "use strict";
 
-const Gettext = imports.gettext;
+import Adw from 'gi://Adw';
 
-const { GObject, Gio, Gtk, Gdk } = imports.gi;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+import GObject from 'gi://GObject';
+import Gtk from 'gi://Gtk';
+import Gdk from 'gi://Gdk';
 
-// i18n/l10n
-const Domain = Gettext.domain(Me.metadata.uuid);
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-const _ = Domain.gettext;
-const ngettext = Domain.ngettext;
+export default class EruptionProfileSwitcherPreferences extends ExtensionPreferences {
+  fillPreferencesWindow(window) {
+    window._settings = this.getSettings();
 
-function init() {
-  ExtensionUtils.initTranslations(Me.metadata.uuid);
+    const page = new Adw.PreferencesPage();
+
+    const group = new Adw.PreferencesGroup();
+
+    group.add(buildPrefsWidget(this));
+
+    page.add(group);
+
+    window.add(page);
+  }
 }
 
-function buildPrefsWidget() {
+function buildPrefsWidget(conf) {
   const builder = new Gtk.Builder();
 
-  builder.set_scope(new MyBuilderScope());
+  builder.set_scope(new MyBuilderScope(conf));
   builder.set_translation_domain("eruption-profile-switcher@x3n0m0rph59.org");
-  builder.add_from_file(Me.dir.get_path() + "/prefs.ui");
+  builder.add_from_file(conf.path +"/prefs.ui");
 
   const provider = new Gtk.CssProvider();
 
-  provider.load_from_path(Me.dir.get_path() + "/stylesheet.css");
+  provider.load_from_path(conf.path +"/stylesheet.css");
   Gtk.StyleContext.add_provider_for_display(
     Gdk.Display.get_default(),
     provider,
     Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
   );
 
-  const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+  const settings = conf.getSettings();
 
   builder
     .get_object("enable_notifications_general")
@@ -86,23 +94,28 @@ function buildPrefsWidget() {
   return builder.get_object("main_prefs");
 }
 
-const PrefsWidget = GObject.registerClass(
-  {
-    GTypeName: "PrefsWidget",
-    Template: Me.dir.get_child("prefs.ui").get_uri(),
-  },
-  class PrefsWidget extends Gtk.Box {
-    _init(params = {}) {
-      super._init(params);
-    }
-  },
-);
+// const PrefsWidget = GObject.registerClass(
+//   {
+//     GTypeName: "PrefsWidget",
+//     Template: conf.dir.get_child("prefs.ui").get_uri(),
+//   },
+//   class PrefsWidget extends Gtk.Box {
+//     _init(conf, params = {}) {
+//       super._init(conf, params);
+//     }
+//   },
+// );
 
 const MyBuilderScope = GObject.registerClass(
   {
     Implements: [Gtk.BuilderScope],
   },
   class MyBuilderScope extends GObject.Object {
+    constructor(conf) {
+      super();
+
+      this.conf = conf;
+    }
     vfunc_create_closure(_builder, handlerName, flags, connectObject) {
       if (flags & Gtk.BuilderClosureFlags.SWAPPED) {
         throw new Error("Unsupported template signal flag 'swapped'");
@@ -116,47 +129,47 @@ const MyBuilderScope = GObject.registerClass(
     }
 
     on_enable_notifications_general_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean("notifications-general", w.get_active());
     }
 
     on_enable_notifications_on_profile_switch_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean("notifications-on-profile-switch", w.get_active());
     }
 
     on_enable_notifications_on_hotplug_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean("notifications-on-hotplug", w.get_active());
     }
 
     on_enable_notifications_on_settings_change_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean("notifications-on-settings-change", w.get_active());
     }
 
     on_compact_mode_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean("compact-mode", w.get_active());
     }
 
     on_show_battery_level_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean("show-battery-level", w.get_active());
     }
 
     on_show_signal_strength_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean("show-signal-strength", w.get_active());
     }
 
     on_show_device_indicators_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean("show-device-indicators", w.get_active());
     }
 
     on_show_device_indicators_percentages_toggled(w) {
-      const settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.eruption-profile-switcher");
+      const settings = this.conf.getSettings();
       settings.set_boolean(
         "show-device-indicators-percentages",
         w.get_active(),
